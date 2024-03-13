@@ -1,20 +1,57 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
+import moment from 'moment';
 import * as _ from 'lodash';
 import * as Icon from 'iconsax-react';
 import SignaturePad from 'signature_pad';
 import { PageSubTitle } from '@/component/general/PageTitle';
 import FormUploadFile from '@/component/form/FormUploadFile';
 import Signature from './Signature';
+import {
+  homeCompanyParam,
+  homeMainParam,
+  homeProformaInvoiceParam,
+  homeServiceLocParam,
+  homeServiceLocCoordinatesParam,
+  homeServiceLocPropertyOwnershipParam,
+  homeServiceLocBuildingTypeParam,
+  homeSubscriptionParam,
+  homeSubscriptionBillingPeriodParam,
+} from '@/service/param/homeParam';
+import { objectToFormData } from '@/helper/convertFormDataHelper';
+import { createProspectContract } from '@/service/sales/salesAPI';
+import { isSuccess } from '@/helper/conditionHelper';
 
-const SectionSignature = () => {
+const SectionSignature = ({ data = {} }) => {
   const signatureRef = useRef(null);
   let signaturePad = {};
 
   const [formRequest, setFormRequest] = useState({
-    file: '',
+    customer: _.cloneDeep(homeMainParam),
+    company: _.cloneDeep(homeCompanyParam),
+    serviceLocation: _.cloneDeep({
+      ...homeServiceLocParam,
+      coordinates: {
+        ...homeServiceLocCoordinatesParam,
+      },
+      propertyOwnership: {
+        ...homeServiceLocPropertyOwnershipParam,
+      },
+      buildingType: {
+        ...homeServiceLocBuildingTypeParam,
+      },
+    }),
+    subscription: _.cloneDeep({
+      ...homeSubscriptionParam,
+      billingPeriod: {
+        ...homeSubscriptionBillingPeriodParam,
+      },
+    }),
+    proformaInvoice: _.cloneDeep(homeProformaInvoiceParam),
+    signature: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
   const [isEmptyCanvas, setIsEmptyCanvas] = useState(true);
 
   const [previewFiles, setPreviewFiles] = useState([]);
@@ -33,7 +70,7 @@ const SectionSignature = () => {
       newPreviewFiles.splice(index, 1);
       setPreviewFiles(newPreviewFiles);
 
-      _handleChange('file', '');
+      _handleChange('signature', '');
     }
   };
 
@@ -53,10 +90,166 @@ const SectionSignature = () => {
     setIsEmptyCanvas(true);
   };
 
-  const _handleSubmit = (e) => {
+  const _handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('submit');
+    setIsLoading(true);
+
+    const dataURLToBlob = async (dataURL) => {
+      return fetch(dataURL)
+        .then((res) => res.blob())
+        .then((blob) => {
+          return blob;
+        })
+        .catch((error) => {
+          console.error('Terjadi kesalahan:', error);
+        });
+    };
+
+    const signaturePadBuffer = await dataURLToBlob(
+      signaturePad.toDataURL('image/png'),
+    );
+
+    const dataFormRequest = {
+      ...formRequest,
+      signature: _.isEmpty(formRequest.signature)
+        ? signaturePadBuffer
+        : formRequest.signature,
+    };
+
+    const convertToFormData = new Promise((resolve, reject) => {
+      try {
+        let formData = objectToFormData(_.cloneDeep(dataFormRequest));
+        resolve(formData);
+      } catch (error) {
+        setIsLoading(false);
+      }
+    });
+
+    convertToFormData.then((formData) => {
+      createProspectContract(formData)
+        .then((resData) => {
+          setIsLoading(false);
+
+          if (isSuccess(resData)) {
+            console.log('resData', resData);
+          }
+        })
+        .catch((err) => {
+          setIsLoading(false);
+        });
+    });
   };
+
+  useEffect(() => {
+    if (!_.isEmpty(data)) {
+      const {
+        customer = {},
+        company = {},
+        serviceLocation = {},
+        subscription = {},
+        proformaInvoice = {},
+      } = data;
+
+      const newFormRequest = {};
+
+      // customer
+      if (!_.isEmpty(customer)) {
+        newFormRequest['customer'] = {
+          holderName: customer?.holderName || '',
+          companyName: customer?.companyName || '',
+          address: customer?.address || '',
+          email: customer?.email || '',
+          identificationNumber: customer?.identificationNumber || '',
+          phoneNumber: customer?.phoneNumber || '',
+        };
+      }
+
+      // company
+      if (!_.isEmpty(company)) {
+        newFormRequest['company'] = {
+          companyName: '',
+          companyAddress: '',
+          companyEmail: '',
+        };
+      }
+
+      // service location
+      if (!_.isEmpty(serviceLocation)) {
+        const {
+          coordinates = {},
+          propertyOwnership = {},
+          buildingType = {},
+        } = serviceLocation;
+
+        newFormRequest['serviceLocation'] = {
+          uniqueId: serviceLocation?.uniqueId || '',
+          address: serviceLocation?.address || '',
+          id: serviceLocation?.id || '',
+        };
+
+        if (!_.isEmpty(coordinates)) {
+          newFormRequest.serviceLocation['coordinates'] = {
+            latitude: coordinates?.latitude || '',
+            longitude: coordinates?.longitude || '',
+          };
+        }
+
+        if (!_.isEmpty(propertyOwnership)) {
+          newFormRequest.serviceLocation['propertyOwnership'] = {
+            id: propertyOwnership?.id || '',
+            name: propertyOwnership?.name || '',
+          };
+        }
+
+        if (!_.isEmpty(buildingType)) {
+          newFormRequest.serviceLocation['buildingType'] = {
+            name: buildingType?.name || '',
+          };
+        }
+      }
+
+      // subscription
+      if (!_.isEmpty(subscription)) {
+        const { billingPeriod } = subscription;
+
+        newFormRequest['subscription'] = {
+          name: subscription?.name || '',
+          alias: subscription?.alias || '',
+          recurringFee: subscription?.recurringFee || '',
+          recurringFeeRp: subscription?.recurringFeeRp || '',
+          setupFee: subscription?.setupFee || '',
+          setupFeeRp: subscription?.setupFeeRp || '',
+          maintenanceFee: subscription?.maintenanceFee || '',
+          maintenanceFeeRp: subscription?.maintenanceFeeRp || '',
+        };
+
+        if (!_.isEmpty(billingPeriod)) {
+          newFormRequest.subscription['billingPeriod'] = {
+            id: billingPeriod?.id || '',
+            name: billingPeriod?.name || '',
+          };
+        }
+      }
+
+      // proforma invoice
+      if (!_.isEmpty(proformaInvoice)) {
+        newFormRequest['proformaInvoice'] = {
+          number: proformaInvoice?.number || '',
+          amount: proformaInvoice?.amount || '',
+          amountRp: proformaInvoice?.amountRp || '',
+        };
+      }
+
+      setFormRequest((prev) => ({
+        ...prev,
+        ...newFormRequest,
+      }));
+    } else {
+      setFormRequest((prev) => ({
+        ...prev,
+      }));
+    }
+  }, []);
 
   useEffect(() => {
     signaturePad = new SignaturePad(signatureRef.current);
@@ -94,8 +287,8 @@ const SectionSignature = () => {
           <div className="col-auto d-flex justify-content-end mb-4 mb-md-0">
             <FormUploadFile
               title="Upload Signature"
-              name="file"
-              value={formRequest.file}
+              name="signature"
+              value={formRequest.signature}
               actions={{
                 onChange: (name, value) => _handleChange(name, value),
                 handleSetDataPreview: (data) => _handleSetPreviewFile(data),
@@ -129,13 +322,13 @@ const SectionSignature = () => {
 
           <div className="col-md-12 pt-1 mb-5">
             <PageSubTitle
-              title="(Demo Customer Name)"
+              title={data?.customer?.holderName || '-'}
               extraClass="mobile-fs-24"
             />
 
             <p className="fs-16 fw-400 mb-0">
-              Prepared By. <span className="fw-600">Arbi Mauday</span>, On 08
-              January 2024
+              Prepared By. <span className="fw-600">Arbi Mauday</span>, On{' '}
+              {moment().format('DD MMMM YYYY')}
             </p>
           </div>
 
