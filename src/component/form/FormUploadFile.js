@@ -7,7 +7,7 @@ const FormUploadFile = (props) => {
 
   const {
     label = '',
-    id = '',
+    id = 'signature',
     required = false,
     accept = 'image/*',
     placeholder = '',
@@ -19,7 +19,7 @@ const FormUploadFile = (props) => {
     },
   } = props;
 
-  const idInput = id + '-input-file-' + useId() || useId();
+  const idInput = id + '-input-file-' + useId();
 
   const _handleChange = (files = []) => {
     actions.onChange(props.name, files[0]);

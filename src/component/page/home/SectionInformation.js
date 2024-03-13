@@ -1,8 +1,17 @@
+import * as _ from 'lodash';
 import HorizontalLoopDataLogic from '@/common/list/HorizontalLoopDataLogic';
 import { PageSubTitle, PageTitleMain } from '@/component/general/PageTitle';
 import { objectListDetailCustom } from '@/config/objectListConfig';
 
 const SectionInformation = ({ data = {} }) => {
+  const {
+    customer = {},
+    company = {},
+    serviceLocation = {},
+    subscription = {},
+    proformaInvoice = {},
+  } = data;
+
   return (
     <section className="container">
       <PageTitleMain
@@ -18,11 +27,17 @@ const SectionInformation = ({ data = {} }) => {
 
         <HorizontalLoopDataLogic
           list={[
-            objectListDetailCustom('Name', 'Demo Customer Name'),
-            objectListDetailCustom('Address', 'Jl Kerobokan 388x'),
-            objectListDetailCustom('Phone Number', '+6292930930'),
-            objectListDetailCustom('Email Address', 'demo@app.net'),
-            objectListDetailCustom('Identification Number', 'PR93929303'),
+            objectListDetailCustom('Name', customer?.holderName || '-'),
+            objectListDetailCustom('Address', customer?.address || '-'),
+            objectListDetailCustom(
+              'Phone Number',
+              customer?.phoneNumber || '-',
+            ),
+            objectListDetailCustom('Email Address', customer?.email || '-'),
+            objectListDetailCustom(
+              'Identification Number',
+              customer?.identificationNumber || '-',
+            ),
           ]}
           config={{
             titleColumn: 'col-md-5 col-lg-4',
@@ -39,8 +54,11 @@ const SectionInformation = ({ data = {} }) => {
 
         <HorizontalLoopDataLogic
           list={[
-            objectListDetailCustom('Company Name', 'GX Jaya'),
-            objectListDetailCustom('Company Address', 'Demo'),
+            objectListDetailCustom('Company Name', company?.companyName || '-'),
+            objectListDetailCustom(
+              'Company Address',
+              company?.companyAddress || '-',
+            ),
           ]}
           config={{
             titleColumn: 'col-md-5 col-lg-4',
@@ -59,18 +77,28 @@ const SectionInformation = ({ data = {} }) => {
           list={[
             objectListDetailCustom(
               'Location Nickname',
-              'Villa Deg',
+              serviceLocation?.locationNickName || '-',
               false,
               true,
             ),
             objectListDetailCustom(
               'Service Location Address',
-              'Jl Kerobokan x838939839838939839829833939889494390943490943903490',
+              serviceLocation?.address || '-',
               false,
               true,
             ),
-            objectListDetailCustom('Property Ownership', 'Contract'),
-            objectListDetailCustom('Building Type', 'Villa'),
+            objectListDetailCustom(
+              'Property Ownership',
+              !_.isEmpty(serviceLocation?.propertyOwnership)
+                ? serviceLocation?.propertyOwnership?.name || '-'
+                : '-',
+            ),
+            objectListDetailCustom(
+              'Building Type',
+              !_.isEmpty(serviceLocation?.buildingType)
+                ? serviceLocation?.buildingType?.name || '-'
+                : '-',
+            ),
           ]}
           config={{
             titleColumn: 'col-md-5 col-lg-4',
@@ -89,17 +117,29 @@ const SectionInformation = ({ data = {} }) => {
           list={[
             objectListDetailCustom(
               'Package Name',
-              'Xtreme Lite 100 MBPS SOHO',
+              subscription?.alias || '-',
               false,
               true,
             ),
-            objectListDetailCustom('Recurring Fee', 'Rp 1.000.000.000'),
-            objectListDetailCustom('Setup Fee', 'Rp 500.000'),
-            objectListDetailCustom('Maintenance Fee', 'Rp 0'),
-            objectListDetailCustom('Proforma Invoice Number', 'PNV0001'),
+            objectListDetailCustom(
+              'Recurring Fee',
+              subscription?.recurringFeeRp || '-',
+            ),
+            objectListDetailCustom(
+              'Setup Fee',
+              subscription?.setupFeeRp || '-',
+            ),
+            objectListDetailCustom(
+              'Maintenance Fee',
+              subscription?.maintenanceFeeRp || '-',
+            ),
+            objectListDetailCustom(
+              'Proforma Invoice Number',
+              proformaInvoice?.number || '-',
+            ),
             objectListDetailCustom(
               'Ammount Due Before Activation',
-              'Rp 2.000.000',
+              proformaInvoice?.amountRp || '-',
             ),
           ]}
           config={{
@@ -117,9 +157,9 @@ const SectionInformation = ({ data = {} }) => {
 
         <p className="mobile-fs-20 fs-20 fw-500 mb-0">
           Lorem Ipsum is simply dummy text of the printing and typesetting
-          industry. Lorem Ipsum has been the industry's standard dummy text ever
-          since the 1500s, when an unknown printer took a galley of type and
-          scrambled it to make a type specimen book.
+          industry. Lorem Ipsum has been the industry&lsquo;s standard dummy
+          text ever since the 1500s, when an unknown printer took a galley of
+          type and scrambled it to make a type specimen book.
         </p>
       </div>
     </section>
