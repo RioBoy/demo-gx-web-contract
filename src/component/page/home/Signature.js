@@ -2,6 +2,7 @@ const Signature = ({
   signatureRef,
   extraClass = '',
   isEmptyCanvas = true,
+  isLoading = false,
   actions = {
     clear: () => {},
   },
@@ -18,6 +19,7 @@ const Signature = ({
         type="button"
         className="btn btn-primary position-absolute bottom-3 end-3"
         onClick={actions.clear}
+        disabled={isLoading}
       >
         Clear
       </button>
