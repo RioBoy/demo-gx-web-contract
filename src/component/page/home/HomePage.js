@@ -95,7 +95,7 @@ const HomePage = () => {
     if (!_.isEmpty(dataContract)) {
       setTimeout(() => {
         actionModal(MDSuccessApplySignature, true);
-      }, 3000);
+      }, 10000);
     }
 
     _handleGetData();

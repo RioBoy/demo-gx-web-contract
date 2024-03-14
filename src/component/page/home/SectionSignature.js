@@ -92,7 +92,7 @@ const SectionSignature = ({
   };
 
   const _handleClear = () => {
-    signatureCanvas.clear();
+    signatureCanvas?.clear();
     setIsEmptyCanvas(true);
   };
 
@@ -295,7 +295,7 @@ const SectionSignature = ({
           extraClass={!_.isEmpty(previewFiles) ? 'd-none' : 'd-block'}
         />
       ),
-      [previewFiles],
+      [previewFiles, isEmptyCanvas],
     );
 
   return (
