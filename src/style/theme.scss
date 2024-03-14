@@ -68,11 +68,16 @@
 
 .wp-signature-upload {
   position: relative;
+  background-color: $neutral-500;
+  border: 1px solid $neutral-400;
+  border-radius: 0.5rem;
+  max-height: 400px;
 
   img {
+    padding: 1.5rem 0;
     width: 100%;
     height: 400px;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center;
   }
 
@@ -85,6 +90,21 @@
     justify-content: center;
     align-items: center;
     padding: 2px;
+  }
+}
+
+.wp-statement {
+  ol {
+    li {
+      padding-left: 0.75rem;
+
+      &::marker {
+        font-size: 1.25rem;
+        font-weight: 600;
+        font-family: 'Plus Jakarta Sans';
+        line-height: 1.5;
+      }
+    }
   }
 }
 

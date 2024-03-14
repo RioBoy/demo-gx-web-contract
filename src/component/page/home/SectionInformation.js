@@ -3,6 +3,40 @@ import HorizontalLoopDataLogic from '@/common/list/HorizontalLoopDataLogic';
 import { PageSubTitle, PageTitleMain } from '@/component/general/PageTitle';
 import { objectListDetailCustom } from '@/config/objectListConfig';
 
+const dataStatement = [
+  {
+    id: 1,
+    text: 'I hereby declare that the above information are correct and the facts set forth in this contract and any accompanying technical data are true and correct.',
+  },
+  {
+    id: 2,
+    text: 'By signing this Internet Subscription Contract, I state that I have received and approved the contract with PT Internet Madju Abad Milenindo, and have read, understood and agreed to all terms and conditions of subscription. All rights and obligations will take effect from the date of signing of this contract',
+  },
+  {
+    id: 3,
+    text: 'I understand that all payment made to PT Internet Madju Abad Milenindo is non-refundable, except in the event of certain conditions previously approved by PT Internet Madju Abad Milenindo.',
+  },
+  {
+    id: 4,
+    text: 'By signing this contract I acknowledge the receipt copy of this  contract and I agree that I have been given sufficient time to review this contract, its terms and conditions, disclaimer, and its rights and responsibilities of customers and written.',
+  },
+];
+
+const ListStatement = ({ children, extraClass = '' }) => (
+  <li className="mb-3">
+    {
+      <p
+        className={
+          'mobile-fs-20 fs-20 fw-600 text-neutral-100 lh-base mb-0 ' +
+          extraClass
+        }
+      >
+        {children}
+      </p>
+    }
+  </li>
+);
+
 const SectionInformation = ({ data = {} }) => {
   const {
     customer = {},
@@ -46,26 +80,31 @@ const SectionInformation = ({ data = {} }) => {
         />
       </div>
 
-      <div className="mb-4">
-        <PageSubTitle
-          title="Company Infomation"
-          extraClass="mobile-fs-24 border-bottom border-neutral-400"
-        />
+      {!_.isEmpty(company) ? (
+        <div className="mb-4">
+          <PageSubTitle
+            title="Company Infomation"
+            extraClass="mobile-fs-24 border-bottom border-neutral-400"
+          />
 
-        <HorizontalLoopDataLogic
-          list={[
-            objectListDetailCustom('Company Name', company?.companyName || '-'),
-            objectListDetailCustom(
-              'Company Address',
-              company?.companyAddress || '-',
-            ),
-          ]}
-          config={{
-            titleColumn: 'col-md-5 col-lg-4',
-            contentColumn: 'col-md-7 col-lg-8',
-          }}
-        />
-      </div>
+          <HorizontalLoopDataLogic
+            list={[
+              objectListDetailCustom(
+                'Company Name',
+                company?.companyName || '-',
+              ),
+              objectListDetailCustom(
+                'Company Address',
+                company?.companyAddress || '-',
+              ),
+            ]}
+            config={{
+              titleColumn: 'col-md-5 col-lg-4',
+              contentColumn: 'col-md-7 col-lg-8',
+            }}
+          />
+        </div>
+      ) : null}
 
       <div className="mb-4">
         <PageSubTitle
@@ -155,12 +194,13 @@ const SectionInformation = ({ data = {} }) => {
           extraClass="mobile-fs-24 border-bottom border-neutral-400"
         />
 
-        <p className="mobile-fs-20 fs-20 fw-500 mb-0">
-          Lorem Ipsum is simply dummy text of the printing and typesetting
-          industry. Lorem Ipsum has been the industry&lsquo;s standard dummy
-          text ever since the 1500s, when an unknown printer took a galley of
-          type and scrambled it to make a type specimen book.
-        </p>
+        <div className="wp-statement">
+          <ol>
+            {dataStatement.map((vm) => (
+              <ListStatement key={vm.id}>{vm.text}</ListStatement>
+            ))}
+          </ol>
+        </div>
       </div>
     </section>
   );

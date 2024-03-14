@@ -14,4 +14,14 @@
   .padding-title {
     padding: 2.875rem 1rem;
   }
+
+  .wp-statement {
+    ol {
+      li {
+        &::marker {
+          font-size: 1rem;
+        }
+      }
+    }
+  }
 }

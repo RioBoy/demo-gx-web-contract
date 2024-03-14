@@ -180,9 +180,9 @@ const SectionSignature = ({
       // company
       if (!_.isEmpty(company)) {
         newFormRequest['company'] = {
-          companyName: '',
-          companyAddress: '',
-          companyEmail: '',
+          companyName: company?.companyName || '',
+          companyAddress: company?.companyAddress || '',
+          companyEmail: company?.companyEmail || '',
         };
       }
 
@@ -295,7 +295,7 @@ const SectionSignature = ({
           extraClass={!_.isEmpty(previewFiles) ? 'd-none' : 'd-block'}
         />
       ),
-      [previewFiles, isEmptyCanvas],
+      [previewFiles, isEmptyCanvas, isLoading],
     );
 
   return (
