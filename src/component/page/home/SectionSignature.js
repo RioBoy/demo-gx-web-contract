@@ -22,10 +22,16 @@ import {
 import { objectToFormData } from '@/helper/convertFormDataHelper';
 import { createProspectContract } from '@/service/sales/salesAPI';
 import { isSuccess } from '@/helper/conditionHelper';
+import actionModal from '@/helper/actionModalHelper';
+import { MDSuccessApplySignature } from '@/config/modalConfig';
 
-const SectionSignature = ({ data = {} }) => {
+const SectionSignature = ({
+  data = {},
+  actions = { handleSetData: () => {} },
+}) => {
   const signatureRef = useRef(null);
   let signaturePad = {};
+  const [signatureCanvas, setSignatureCanvas] = useState({});
 
   const [formRequest, setFormRequest] = useState({
     customer: _.cloneDeep(homeMainParam),
@@ -86,7 +92,7 @@ const SectionSignature = ({ data = {} }) => {
   };
 
   const _handleClear = () => {
-    signaturePad.clear();
+    signatureCanvas.clear();
     setIsEmptyCanvas(true);
   };
 
@@ -101,18 +107,23 @@ const SectionSignature = ({ data = {} }) => {
           return blob;
         })
         .catch((error) => {
-          console.error('Terjadi kesalahan:', error);
+          console.error('error blob:', error);
         });
     };
 
     const signaturePadBuffer = await dataURLToBlob(
-      signaturePad.toDataURL('image/png'),
+      signatureCanvas.toDataURL('image/png'),
     );
+
+    const fileName = 'signature.png';
+    const fileFromBuffer = new File([signaturePadBuffer], fileName, {
+      type: signaturePadBuffer.type,
+    });
 
     const dataFormRequest = {
       ...formRequest,
       signature: _.isEmpty(formRequest.signature)
-        ? signaturePadBuffer
+        ? fileFromBuffer
         : formRequest.signature,
     };
 
@@ -131,7 +142,9 @@ const SectionSignature = ({ data = {} }) => {
           setIsLoading(false);
 
           if (isSuccess(resData)) {
-            console.log('resData', resData);
+            actionModal(MDSuccessApplySignature);
+            actions.handleSetData(resData.result);
+            _handleClear();
           }
         })
         .catch((err) => {
@@ -258,8 +271,16 @@ const SectionSignature = ({ data = {} }) => {
       setIsEmptyCanvas(false);
     });
 
+    setSignatureCanvas(signaturePad);
     resizeCanvas();
-  }, [signaturePad]);
+  }, []);
+
+  useEffect(() => {
+    if (formRequest.signature !== '') {
+      signatureCanvas?.clear();
+      setIsEmptyCanvas(true);
+    }
+  }, [formRequest.signature, signatureCanvas]);
 
   const UISignature = () =>
     useMemo(
@@ -267,13 +288,14 @@ const SectionSignature = ({ data = {} }) => {
         <Signature
           signatureRef={signatureRef}
           isEmptyCanvas={isEmptyCanvas}
+          isLoading={isLoading}
           actions={{
             clear: _handleClear,
           }}
           extraClass={!_.isEmpty(previewFiles) ? 'd-none' : 'd-block'}
         />
       ),
-      [signatureRef, signaturePad, isEmptyCanvas],
+      [previewFiles],
     );
 
   return (
@@ -309,6 +331,7 @@ const SectionSignature = ({ data = {} }) => {
                       type="button"
                       className="btn-circle-icon btn btn-danger-300 text-danger-100 position-absolute top-3 end-3"
                       onClick={() => _handleRemove(idx)}
+                      disabled={isLoading}
                     >
                       <Icon.Trash variant="Bold" size="16" />
                     </button>
@@ -333,7 +356,13 @@ const SectionSignature = ({ data = {} }) => {
           </div>
 
           <div className="col-12 col-md-4 offset-md-4 d-grid mt-3">
-            <button type="submit" className="btn btn-primary fs-16 fw-500 py-3">
+            <button
+              type="submit"
+              className="btn btn-primary fs-16 fw-500 py-3"
+              disabled={
+                isLoading || (isEmptyCanvas && formRequest.signature === '')
+              }
+            >
               Apply
             </button>
           </div>
